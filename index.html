@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudPulse — Monitoreo de Infraestructura SPA</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ==================== ZONA 1: NAVEGACIÓN (HEADER FIJO) ==================== -->
+    <header class="top-header" role="banner">
+      <div class="header-left">
+        <button id="menu-toggle" class="btn btn-icon" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="sidebar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div class="brand">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span class="brand-name">CloudPulse</span>
+        </div>
+        <!-- Breadcrumbs: ¿Dónde estoy? y ¿De dónde vengo? -->
+        <nav class="breadcrumb-nav" aria-label="Ruta de navegación">
+          <ol class="breadcrumb-list">
+            <li><a href="#dashboard" data-nav="dashboard">Infraestructura</a></li>
+            <li aria-hidden="true">/</li>
+            <li id="breadcrumb-current" aria-current="page">Panel General</li>
+          </ol>
+          <span id="breadcrumb-origin" class="origin-pill">Origen: Inicio de sesión</span>
+        </nav>
+      </div>
+
+      <div class="header-actions">
+        <button id="theme-toggle" class="btn btn-ghost" type="button" aria-label="Alternar modo oscuro">
+          <span id="theme-icon" aria-hidden="true">◐</span>
+          <span id="theme-label" class="hide-mobile">Tema</span>
+        </button>
+        <div class="user-chip" title="Martín Velasco — SRE On-Call">
+          <span class="avatar" aria-hidden="true">MV</span>
+          <span class="hide-mobile">M. Velasco</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== ZONA 1: SIDEBAR RETRÁCTIL / PERSISTENTE ==================== -->
+    <div id="sidebar-backdrop" class="backdrop" hidden></div>
+    <aside id="sidebar" class="sidebar" aria-label="Menú principal">
+      <p class="sidebar-heading">¿A dónde puedo ir?</p>
+      <nav>
+        <ul class="nav-list">
+          <li>
+            <button type="button" class="nav-link is-active" data-view="dashboard" aria-current="page">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+              <span>Panel General</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav-link" data-view="alerts">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Alertas y Eventos</span>
+              <span class="nav-badge">3</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav-link" data-view="states">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <span>Auditoría 5 Estados</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <p class="cluster-status"><span class="status-dot ok"></span> Región us-east-1 operativa</p>
+      </div>
+    </aside>
+
+    <!-- ==================== ZONA 2: CONTENIDO DINÁMICO (SPA) ==================== -->
+    <main class="main-content" id="main-content">
+      <!-- VISTA 1: DASHBOARD PRINCIPAL -->
+      <section id="view-dashboard" class="spa-view is-visible" aria-labelledby="title-dashboard">
+        <div class="section-header">
+          <div>
+            <h1 id="title-dashboard">Métricas en Tiempo Real e Instancias</h1>
+            <p class="subtitle">Supervisión de telemetría de nodos y ejecución segura de operaciones.</p>
+          </div>
+          <button id="refresh-metrics" type="button" class="btn btn-primary">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-text">Actualizar telemetría</span>
+          </button>
+        </div>
+
+        <!-- BENTO GRID LAYOUT -->
+        <div class="bento-grid">
+          <article class="card bento-wide">
+            <div class="card-header">
+              <h2>Carga de CPU del Clúster (%)</h2>
+              <span class="badge badge-ok">Estable · Promedio 54%</span>
+            </div>
+            <p class="card-desc">Distribución en los últimos 6 intervalos de muestreo.</p>
+            <div class="bar-chart" id="cpu-chart" role="img" aria-label="Gráfica de barras de uso de CPU entre 38% y 74%">
+              <div class="bar-col"><div class="bar-fill" style="height: 44%"></div><span>12:00</span></div>
+              <div class="bar-col"><div class="bar-fill" style="height: 58%"></div><span>12:10</span></div>
+              <div class="bar-col"><div class="bar-fill" style="height: 51%"></div><span>12:20</span></div>
+              <div class="bar-col"><div class="bar-fill is-high" style="height: 74%"></div><span>12:30</span></div>
+              <div class="bar-col"><div class="bar-fill" style="height: 49%"></div><span>12:40</span></div>
+              <div class="bar-col"><div class="bar-fill" style="height: 46%"></div><span>Ahora</span></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2>Instancias Activas</h2>
+            </div>
+            <p class="kpi-value" id="kpi-active-count">6 / 7</p>
+            <p class="card-desc">1 nodo en ventana de revisión</p>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2>Latencia Global P95</h2>
+            </div>
+            <p class="kpi-value">18.4 <small>ms</small></p>
+            <p class="card-desc">Umbral objetivo: &lt; 35 ms</p>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2>Memoria Reservada</h2>
+            </div>
+            <p class="kpi-value">68.2%</p>
+            <div class="progress-track" aria-hidden="true"><div class="progress-bar" style="width: 68.2%"></div></div>
+            <p class="card-desc">436 GB de 640 GB asignados</p>
+          </article>
+
+          <article class="card bento-wide-lg">
+            <div class="card-header">
+              <h2>Tráfico de Red Saliente por Zona</h2>
+              <span class="badge badge-warn">Pico moderado eu-west</span>
+            </div>
+            <div class="region-list">
+              <div class="region-item"><span>us-east-1 (Virginia)</span><strong>620 Mbps</strong></div>
+              <div class="region-item"><span>eu-west-1 (Irlanda)</span><strong>890 Mbps</strong></div>
+              <div class="region-item"><span>mx-central-1 (Querétaro)</span><strong>410 Mbps</strong></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- TABLA DE SERVIDORES CON FILTROS Y PAGINACIÓN -->
+        <section class="card table-section" aria-labelledby="servers-heading">
+          <div class="table-toolbar">
+            <h2 id="servers-heading">Registro de Instancias Cloud</h2>
+            <div class="filter-group">
+              <div class="field-inline">
+                <label for="search-server" class="sr-only">Buscar por nombre o IP</label>
+                <input id="search-server" type="search" class="form-control" placeholder="Buscar nodo o IP (ej. srv-prod)...">
+              </div>
+              <div class="field-inline">
+                <label for="filter-status" class="sr-only">Filtrar por estado</label>
+                <select id="filter-status" class="form-control">
+                  <option value="all">Todos los estados</option>
+                  <option value="online">Operativo</option>
+                  <option value="warning">Degradado</option>
+                  <option value="maintenance">Mantenimiento</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="server-table">
+              <thead>
+                <tr>
+                  <th>Instancia</th>
+                  <th>Dirección IP</th>
+                  <th>Región</th>
+                  <th>CPU / RAM</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="server-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <span id="pagination-summary" class="card-desc">Mostrando instancias</span>
+            <div class="btn-group">
+              <button id="prev-page" type="button" class="btn btn-ghost">Anterior</button>
+              <span id="page-indicator" class="page-indicator">Página 1 de 2</span>
+              <button id="next-page" type="button" class="btn btn-ghost">Siguiente</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- VISTA 2: ALERTAS Y EVENTOS -->
+      <section id="view-alerts" class="spa-view" hidden aria-labelledby="title-alerts">
+        <div class="section-header">
+          <div>
+            <h1 id="title-alerts">Alertas Activas y Registro Operativo</h1>
+            <p class="subtitle">Eventos recientes detectados por los agentes de monitoreo.</p>
+          </div>
+        </div>
+        <div class="alerts-stack">
+          <article class="card alert-card">
+            <div>
+              <span class="badge badge-danger">Crítica · Hace 4 min</span>
+              <h2>Uso elevado de IOPS en nodo srv-db-replica-02</h2>
+              <p class="card-desc">El volumen NVMe superó el 88% de operaciones por segundo sostenidas.</p>
+            </div>
+            <button type="button" class="btn btn-primary jump-to-dashboard">Ir a tabla de nodos</button>
+          </article>
+          <article class="card alert-card">
+            <div>
+              <span class="badge badge-warn">Preventiva · Hace 19 min</span>
+              <h2>Certificado TLS próximo a renovarse en баланceador edge-mx-01</h2>
+              <p class="card-desc">Renovación automática programada en 72 horas.</p>
+            </div>
+          </article>
+          <article class="card alert-card">
+            <div>
+              <span class="badge badge-ok">Resuelta · Hace 45 min</span>
+              <h2>Auto-escalado completado en pool k8s-workers-east</h2>
+              <p class="card-desc">Se añadieron 2 réplicas tras incremento de tráfico matutino.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- VISTA 3: CATÁLOGO DE LOS 5 ESTADOS (EVIDENCIA FASE 4) -->
+      <section id="view-states" class="spa-view" hidden aria-labelledby="title-states">
+        <div class="section-header">
+          <div>
+            <h1 id="title-states">Matriz de Validación: Los 5 Estados de Control</h1>
+            <p class="subtitle">Vista de verificación para comprobar Default, Hover, Focus, Disabled y Loading.</p>
+          </div>
+        </div>
+        <div class="bento-grid">
+          <article class="card bento-wide">
+            <h2>Estados en Botones de Acción</h2>
+            <p class="card-desc">Usa el puntero o la tecla Tab para inspeccionar contornos accesibles y haz clic en el botón asíncrono.</p>
+            <div class="states-showcase">
+              <button type="button" class="btn btn-primary">1. Default / 2. Hover / 3. Focus</button>
+              <button type="button" class="btn btn-primary" disabled>4. Disabled (Bloqueado)</button>
+              <button type="button" id="demo-loading-btn" class="btn btn-primary is-loading" aria-busy="true" disabled>
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-text">5. Loading (Asíncrono)</span>
+              </button>
+              <button type="button" id="trigger-async-demo" class="btn btn-ghost">Probar carga de 1.5s</button>
+            </div>
+          </article>
+          <article class="card bento-wide">
+            <h2>Estados en Controles de Entrada</h2>
+            <div class="form-grid">
+              <div>
+                <label class="form-label" for="demo-default">Campo interactivo (Default / Hover / Focus)</label>
+                <input id="demo-default" type="text" class="form-control" value="10.24.0.18">
+              </div>
+              <div>
+                <label class="form-label" for="demo-disabled">Campo deshabilitado (Disabled)</label>
+                <input id="demo-disabled" type="text" class="form-control" value="srv-immutable-id-994" disabled>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================== ZONA 3: DRAWER DE CONFIGURACIÓN ==================== -->
+  <div id="drawer-backdrop" class="backdrop" hidden></div>
+  <aside id="config-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+    <div class="drawer-header">
+      <div>
+        <h2 id="drawer-title">Configurar Parámetros</h2>
+        <p id="drawer-subtitle" class="card-desc">Ajustes de servicio en caliente</p>
+      </div>
+      <button id="drawer-close" type="button" class="btn btn-icon" aria-label="Cerrar panel de configuración">✕</button>
+    </div>
+
+    <form id="config-form" class="drawer-body">
+      <input type="hidden" id="cfg-id">
+
+      <div class="form-field">
+        <label class="form-label" for="cfg-name">Alias de la Instancia (Texto)</label>
+        <input id="cfg-name" type="text" class="form-control" required minlength="3" placeholder="Ej. srv-prod-api-01">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="cfg-region">Región de Despliegue (Dropdown)</label>
+        <select id="cfg-region" class="form-control" required>
+          <option value="us-east-1">us-east-1 (N. Virginia)</option>
+          <option value="eu-west-1">eu-west-1 (Irlanda)</option>
+          <option value="mx-central-1">mx-central-1 (Querétaro)</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="cfg-date">Próxima Ventana de Mantenimiento (Datepicker)</label>
+        <input id="cfg-date" type="date" class="form-control" required>
+      </div>
+
+      <div class="form-field switch-row">
+        <div>
+          <label class="form-label" for="cfg-failover">Auto-Failover de Alta Disponibilidad</label>
+          <p class="card-desc">Conmutar tráfico si el nodo supera 90% de CPU.</p>
+        </div>
+        <input id="cfg-failover" type="checkbox" role="switch" class="toggle-switch" checked>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="cfg-notes">Notas Operativas / Reglas de Inicio (Textarea)</label>
+        <textarea id="cfg-notes" rows="3" class="form-control" placeholder="Especifica parámetros del kernel o instrucciones para guardia..."></textarea>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="cfg-uuid">Identificador Físico de Hardware (Solo lectura)</label>
+        <input id="cfg-uuid" type="text" class="form-control" value="hw-node-8841-readonly" disabled>
+      </div>
+
+      <div class="drawer-footer">
+        <button id="drawer-cancel" type="button" class="btn btn-ghost">Cancelar</button>
+        <button id="drawer-save" type="submit" class="btn btn-primary">
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <span class="btn-text">Guardar configuración</span>
+        </button>
+      </div>
+    </form>
+  </aside>
+
+  <!-- ==================== ZONA 3: MODAL DE ACCIÓN CRÍTICA ==================== -->
+  <div id="modal-backdrop" class="backdrop" hidden></div>
+  <div id="confirm-modal" class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" hidden>
+    <div class="modal-header">
+      <span class="badge badge-danger">Acción destructiva irreversible</span>
+      <h2 id="modal-title">¿Eliminar instancia permanentemente?</h2>
+    </div>
+    <p id="modal-desc" class="modal-body">
+      Estás a punto de dar de baja el nodo <strong id="modal-server-name">srv-node</strong>. Se desconectarán sus volúmenes efímeros y las conexiones activas se cerrarán de inmediato.
+    </p>
+    <div class="modal-footer">
+      <button id="modal-cancel" type="button" class="btn btn-ghost">Conservar instancia</button>
+      <button id="modal-confirm" type="button" class="btn btn-danger">
+        <span class="btn-spinner" aria-hidden="true"></span>
+        <span class="btn-text">Sí, eliminar instancia</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES TOAST -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
